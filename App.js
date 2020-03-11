@@ -6,43 +6,39 @@ import TodoList from './components/todolist';
 
 const App: () => React$Node = () => {
 
+  // Store Textarea content. This represents todo description.
+  // Saved to 'todo' column on 'todo' table 
   const [text, setText] = useState("");
+
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState([]);
+
+  // Entry point to manipulate 'todos' table
+  // Either to save or to read, it begin through this constant
   const todoCollection = db.collections.get("todos");
 
-  const save = () => {
+  // called on submit a new 'todo'
+  const save = async () => {
     if (!text)
       alert("Preencha o campo antes de salvá-lo");
     
-    (
+    // an action is a function that can modify the database
+    await db.action(
       async () => {
-        await db.action(
-          async () => {
-            const newTodo = await todoCollection.create( todo => {
-              todo.todo = text;
-              todo.completed = false;
-              todo.create_at = new Date().getTime();
-            });
 
-            setText("");
+        const newTodo = await todoCollection
+        .create( todo => {
+          todo.todo = text;
+          todo.completed = false;
+          todo.create_at = new Date().getTime();
+        });
 
-          }
-        )
-      }
-    )(); //FFO  
+        //clear textarea content
+        setText("");
+
+    });
+
+
   }
-
-  // useEffect( ()=> {
-  //   (
-  //     async () => {
-  //       let allTodo = await todoCollection.query().observe();
-  //       setData(allTodo);
-  //       console.log(allTodo);
-  //       setLoading(false);
-  //     }
-  //   )();
-  // }, []);
 
   if (loading)
     return (<View style={{flex: 1,alignItems:'center', justifyContent:'center'}}>

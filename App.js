@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Body, Button, Container, Content, Header, Text, Textarea, Title } from 'native-base';
-import { View, StatusBar, StyleSheet, FlatList } from 'react-native';
+import { View, StatusBar, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import {db} from './db';
+import TodoList from './components/todolist';
 
 const App: () => React$Node = () => {
 
   const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
+  const todoCollection = db.collections.get("todos");
 
   const save = () => {
-    const todoCollection = db.collections.get("todos");
-
     if (!text)
       alert("Preencha o campo antes de salvá-lo");
     
@@ -26,14 +27,29 @@ const App: () => React$Node = () => {
 
             setText("");
 
-            alert("TODO adicionado com sucesso");
           }
         )
       }
     )(); //FFO  
   }
 
-  return (
+  // useEffect( ()=> {
+  //   (
+  //     async () => {
+  //       let allTodo = await todoCollection.query().observe();
+  //       setData(allTodo);
+  //       console.log(allTodo);
+  //       setLoading(false);
+  //     }
+  //   )();
+  // }, []);
+
+  if (loading)
+    return (<View style={{flex: 1,alignItems:'center', justifyContent:'center'}}>
+      <ActivityIndicator />
+      </View>)
+  else
+    return (
     <>
       <StatusBar barStyle="light-content" />
         <Container>
@@ -45,15 +61,12 @@ const App: () => React$Node = () => {
           <Content>
             <Text>Utilização do Watermelon DB para salvar dados</Text>
             <View style={{margin: 20}}>
-            <Textarea placeholder="insert your TO DO here" bordered onChangeText={ text => setText(text) }></Textarea>
+            <Textarea value={text} placeholder="insert your TO DO here" bordered onChangeText={ text => setText(text) }></Textarea>
             
             <Button onPress={() => save()} style={{marginTop: 10}} primary><Text>ADICIONAR</Text></Button>
             </View>
 
-            <FlatList 
-              style={{ padding: 20 }}
-              ListHeaderComponent={ ()=> <Text style={{fontWeight:'bold', color: '#242424'}}>TODOS</Text>}
-            />
+            <TodoList database={todoCollection}/>
           </Content>
 
         </Container>
